@@ -8,3 +8,5 @@ sealed class UserEvent extends Equatable {
 }
 
 final class UserFetched extends UserEvent {}
+
+final class FetchMore extends UserEvent {}

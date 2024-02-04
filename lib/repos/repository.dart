@@ -21,4 +21,19 @@ class UserRepo {
       throw e.toString();
     }
   }
+
+  Future<List<User>> moreUsers(int page) async {
+    try {
+      List<User> users = [];
+      final userdata = await userDataProvider.moreData(page);
+      final jsonusers = jsonDecode(userdata);
+      for (var element in jsonusers) {
+        users.add(User.fromMap(element));
+      }
+      return users;
+    } catch (e) {
+      print("!!!!!!!!!!!!!!!!!!ERROR: $e");
+      throw e.toString();
+    }
+  }
 }
