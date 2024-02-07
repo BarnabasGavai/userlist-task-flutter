@@ -6,6 +6,25 @@ class UserRepo {
   final UserDataProvider userDataProvider;
   UserRepo(this.userDataProvider);
 
+  Future<List<User>?> initialData() async {
+    try {
+      List<User> users = [];
+      final usersdata = await userDataProvider.loadData();
+      if (usersdata == "") {
+        return null;
+      } else {
+        final jsonusers = jsonDecode(usersdata);
+        for (var element in jsonusers) {
+          users.add(User.fromMap(element));
+        }
+
+        return users;
+      }
+    } catch (e) {
+      throw e.toString();
+    }
+  }
+
   Future<List<User>> getUsers() async {
     try {
       List<User> users = [];
@@ -26,13 +45,23 @@ class UserRepo {
     try {
       List<User> users = [];
       final userdata = await userDataProvider.moreData(page);
+
       final jsonusers = jsonDecode(userdata);
       for (var element in jsonusers) {
         users.add(User.fromMap(element));
       }
       return users;
     } catch (e) {
-      print("!!!!!!!!!!!!!!!!!!ERROR: $e");
+      throw "error from repo: ${e.toString()}";
+    }
+  }
+
+  Future<String> newUser(User newuser) async {
+    try {
+      Map data = newuser.toMap();
+      String response = await userDataProvider.createUser(data);
+      return response;
+    } catch (e) {
       throw e.toString();
     }
   }

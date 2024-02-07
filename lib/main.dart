@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
       child: BlocProvider(
         create: (context) => UserBloc(
           context.read<UserRepo>(),
-        ),
+        )..add(InitialLoad()),
         child:
             MaterialApp(debugShowCheckedModeBanner: false, home: HomeScreen()),
       ),

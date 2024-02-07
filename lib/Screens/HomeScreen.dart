@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:mytask/bloc/user_bloc.dart';
 
+import 'EditScreen.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -25,7 +27,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    context.read<UserBloc>().add(UserFetched());
+    UserState stateaa = context.read<UserBloc>().state;
+    if (stateaa == UserSuccess) {
+      context.read<UserBloc>().add(UserFetched());
+    }
     super.initState();
     scrollListening();
   }
@@ -42,7 +47,13 @@ class _HomeScreenState extends State<HomeScreen> {
           centerTitle: true,
           actions: [
             IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditScreen(),
+                      ));
+                },
                 icon: const Icon(
                   Icons.add_circle,
                   color: Colors.black,
@@ -68,6 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
               data = state.users;
             } else {
               data = [];
+              return Text("No Users Found!");
             }
             return Container(
               padding: const EdgeInsets.only(top: 15),

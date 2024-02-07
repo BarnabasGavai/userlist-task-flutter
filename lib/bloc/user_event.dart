@@ -7,6 +7,27 @@ sealed class UserEvent extends Equatable {
   List<Object> get props => [];
 }
 
+final class InitialLoad extends UserEvent {}
+
 final class UserFetched extends UserEvent {}
 
 final class FetchMore extends UserEvent {}
+
+final class AddUser extends UserEvent {
+  String name;
+  String gender;
+  String phone;
+  String email;
+  String address;
+  String state;
+  String city;
+
+  AddUser(
+      {required this.name,
+      required this.address,
+      required this.city,
+      required this.email,
+      required this.gender,
+      required this.phone,
+      required this.state});
+}
