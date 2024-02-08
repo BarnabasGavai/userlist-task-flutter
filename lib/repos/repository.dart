@@ -61,7 +61,9 @@ class UserRepo {
     try {
       Map data = newuser.toMap();
       String response = await userDataProvider.createUser(data);
-      return response;
+      final jsondata = jsonDecode(response);
+
+      return jsondata["id"];
     } catch (e) {
       throw e.toString();
     }

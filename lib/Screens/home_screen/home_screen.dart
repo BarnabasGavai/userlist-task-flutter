@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
+
 import 'package:mytask/bloc/user_bloc.dart';
 
-import 'edit_screen.dart';
+import '../../models/user.dart';
+import '../edit_screen/edit_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   static String routeName = "/";
@@ -15,24 +16,34 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  //ScrollControler to detect the scrolling
+  final scrollController = ScrollController();
+
+  /* All Functions: */
+  /* Delete helper function to call a bloc event which deletes the speicific user */
   void delete_helper(String id) {
     context.read<UserBloc>().add(DeleteUser(id: id));
   }
 
-  final scrollController = ScrollController();
+  /* ScrollListening function to continously check whether the list was scrolled and whenever scroll is detected, Call the bloc event to load more data from next page*/
   void scrollListening() {
     scrollController.addListener(() {
       if (scrollController.position.atEdge) {
         if (scrollController.position.pixels != 0) {
+          //bloc event to get more data from API
           context.read<UserBloc>().add(FetchMore());
         }
       }
     });
   }
 
+/* InitState handles 2 functions:
+1. A bloc event is called to load the already stored data (Without calling the API)
+2. It calls the scrollingListening function to  */
   @override
   void initState() {
     UserState curr_state = context.read<UserBloc>().state;
+    //In the main file, already initial event was called so this condition checks whether the app is in loading state or not. If it s in loading state then the user fetch event is not called
     if (curr_state == UserSuccess) {
       context.read<UserBloc>().add(UserFetched());
     }
@@ -44,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          backgroundColor: Color.fromARGB(255, 255, 255, 255),
+          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
           title: const Text(
             "U S E R S",
             style: TextStyle(color: Colors.black),
@@ -63,16 +74,39 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         body: BlocBuilder<UserBloc, UserState>(
           builder: (context, state) {
+            //Failed condition checking
             if (state is UserFailure) {
-              return Text(state.error);
+              return Center(
+                  child: Text("Following Error Occured: ${state.error}"));
             }
-
+            /* To show the circular progress indicator, the state should be loading state. LoadingMore is a state which is emitted when more data is fetched on scrolling(Pagination). So while the app is in LoadingMore state, still it must be responsive and running. */
             if (state is! UserSuccess && state is! LoadingMore) {
-              return const Center(
-                child: CircularProgressIndicator.adaptive(),
+              return Center(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator.adaptive(
+                      backgroundColor: Colors.white,
+                      valueColor: AlwaysStoppedAnimation(Colors.black),
+                    ),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    (state is UserLoading)
+                        ? Text(
+                            state.loading_message,
+                            style: TextStyle(
+                              fontSize: 17,
+                            ),
+                          )
+                        : Text("")
+                  ],
+                ),
               );
             }
 
+            //All the users data is stored in this variable
             final data;
             if (state is UserSuccess) {
               data = state.users;
@@ -82,14 +116,18 @@ class _HomeScreenState extends State<HomeScreen> {
               data = [];
               return const Text("No Users Found!");
             }
+
+            //This is a copy of "data" variable. Just to pass it in the listview and avoid problems
             final listdata = data;
             return Container(
               padding: const EdgeInsets.only(top: 15),
               color: const Color.fromARGB(255, 243, 243, 243),
               child: ListView.builder(
                 controller: scrollController,
+                //Item count is one extra to show the circular loading indicator while more data is fetched (Pagination)
                 itemCount: listdata.length + 1,
                 itemBuilder: (context, index) {
+                  //Checks if the data is empty. which means no users are there.
                   if (listdata.length == 0) {
                     return const Center(
                       child: Text(
@@ -99,7 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     );
                   }
-
+                  //If the index exceeds the data length, then it's time to load more data. Hence, checking the condition
                   if (index < listdata.length) {
                     return Padding(
                         padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
@@ -111,36 +149,38 @@ class _HomeScreenState extends State<HomeScreen> {
                               BoxShadow(
                                 color: Color.fromARGB(255, 228, 227, 227),
                                 offset: Offset(0, 0),
-                                blurRadius: 1,
-                                spreadRadius: 4,
+                                blurRadius: 2,
+                                spreadRadius: 3,
                               ),
                             ],
                           ),
                           child: ListTile(
                             title: Container(
-                              padding: EdgeInsets.only(bottom: 5),
+                              padding: const EdgeInsets.only(bottom: 5),
                               child: Row(
                                 children: [
                                   Text(
-                                    listdata[index].name,
+                                    (listdata[index].name.length > 15)
+                                        ? "${listdata[index].name.toString().substring(0, 12)}..."
+                                        : "${listdata[index].name}",
                                     style: const TextStyle(
-                                        fontSize: 18,
+                                        fontSize: 14,
                                         fontWeight: FontWeight.w500),
                                   ),
                                   const SizedBox(
-                                    width: 20,
+                                    width: 4,
                                   ),
                                   (listdata[index].gender == 'male')
                                       ? const Row(
                                           children: [
-                                            Icon(Icons.male, size: 21),
+                                            Icon(Icons.male, size: 13),
                                             SizedBox(
                                               width: 5,
                                             ),
                                             Text(
                                               "Male",
                                               style: TextStyle(
-                                                  fontSize: 15,
+                                                  fontSize: 10,
                                                   color: Color.fromARGB(
                                                       255, 95, 95, 95)),
                                             )
@@ -148,14 +188,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                         )
                                       : const Row(
                                           children: [
-                                            Icon(Icons.female, size: 21),
+                                            Icon(Icons.female, size: 13),
                                             SizedBox(
                                               width: 5,
                                             ),
                                             Text(
                                               "Female",
                                               style: TextStyle(
-                                                  fontSize: 15,
+                                                  fontSize: 10,
                                                   color: Color.fromARGB(
                                                       255, 95, 95, 95)),
                                             )
@@ -174,10 +214,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                         onPressed: () {
                                           Navigator.pushNamed(
                                               context, EditingScreen.routeName,
-                                              arguments: listdata[index]);
+                                              arguments: (listdata[index]));
                                         },
                                         icon: const Icon(
                                           Icons.edit,
+                                          size: 20,
                                         )),
                                   ),
                                   Container(
@@ -210,13 +251,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
                                           if (response == 'Yes') {
                                             setState(() {
-                                              delete_helper(listdata[index].id);
+                                              delete_helper(data[index].id);
                                               listdata.remove(data[index]);
                                             });
                                           }
                                         },
                                         icon: const Icon(
                                           Icons.delete,
+                                          size: 20,
                                         )),
                                   ),
                                 ],
@@ -224,16 +266,18 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             subtitle: Row(
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.mail_outline,
-                                  size: 17,
+                                  size: 14,
                                 ),
-                                SizedBox(
+                                const SizedBox(
                                   width: 2,
                                 ),
                                 Text(
-                                  listdata[index].email,
-                                  style: TextStyle(fontSize: 15),
+                                  (listdata[index].email.length > 30)
+                                      ? "${listdata[index].email.toString().substring(0, 20)}...."
+                                      : "${listdata[index].email}",
+                                  style: const TextStyle(fontSize: 11),
                                 ),
                               ],
                             ),
@@ -241,10 +285,31 @@ class _HomeScreenState extends State<HomeScreen> {
                         ));
                   } else {
                     if (state is! UserSuccess) {
-                      return const Padding(
+                      return Padding(
                         padding: EdgeInsets.symmetric(vertical: 32),
                         child: Center(
-                          child: CircularProgressIndicator(),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CircularProgressIndicator.adaptive(
+                                backgroundColor: Colors.white,
+                                valueColor:
+                                    AlwaysStoppedAnimation(Colors.black),
+                              ),
+                              SizedBox(
+                                height: 5,
+                              ),
+                              (state is UserLoading)
+                                  ? Text(
+                                      state.loading_message,
+                                      style: TextStyle(
+                                        fontSize: 17,
+                                      ),
+                                    )
+                                  : Text("")
+                            ],
+                          ),
                         ),
                       );
                     }
@@ -266,5 +331,11 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           },
         ));
+  }
+
+  @override
+  void dispose() {
+    scrollController.dispose(); // TODO: implement dispose
+    super.dispose();
   }
 }

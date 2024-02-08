@@ -16,7 +16,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   UserBloc(this.userRepo) : super(UserInitial()) {
     on<InitialLoad>(
       (event, emit) async {
-        emit(UserLoading());
+        emit(UserLoading("Getting Data from server.."));
 
         try {
           var response = await userRepo.initialData();
@@ -34,7 +34,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     );
 
     on<UserFetched>((event, emit) async {
-      emit(UserLoading());
+      emit(UserLoading("Loading..."));
       try {
         if (users.length < (page) * 15) {
           users.addAll(newlyAdded);
@@ -72,16 +72,16 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     });
     on<UpdateUser>(
       (event, emit) async {
-        emit(UserLoading());
+        emit(UserLoading("Updating user details.."));
         String latitude = "";
         String longitude = "";
         try {
-          LocationPermission permission = await Geolocator.requestPermission();
+          await Geolocator.requestPermission();
           Position position = await determinePosition();
           latitude = position.latitude.toString();
           longitude = position.latitude.toString();
         } catch (e) {
-          print("Location Error: ${e.toString()}");
+          print("User location not detected");
         }
         User updatedUser = User(
             id: event.id,
@@ -131,10 +131,12 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
     on<DeleteUser>(
       (event, emit) async {
-        emit(UserLoading());
+        emit(UserLoading("Deleting the user"));
         try {
           String id = event.id;
+
           String response = await userRepo.deleteCurrUser(id);
+
           for (var element in users) {
             if (element.id == id) {
               users.remove(element);
@@ -160,7 +162,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
     on<AddUser>(
       (event, emit) async {
-        emit(UserLoading());
+        emit(UserLoading("Adding new user.."));
         String latitude = "";
         String longitude = "";
         try {
@@ -185,6 +187,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
               longitude: longitude,
               phone: event.phone);
           String response = await userRepo.newUser(newUser);
+          newUser.id = response;
           newlyAdded.add(newUser);
 
           if (users.length < (page) * 15) {
@@ -195,7 +198,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
             emit(UserSuccess(users: users, hasData: true));
           }
         } catch (e) {
-          UserFailure(e.toString());
+          emit(UserFailure(e.toString()));
         }
       },
     );

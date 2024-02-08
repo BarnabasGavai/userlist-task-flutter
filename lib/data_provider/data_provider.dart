@@ -1,15 +1,12 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:mytask/data/my_data.dart';
-import 'package:path_provider/path_provider.dart';
 
 class UserDataProvider {
   Future<String> loadData() async {
     try {
-      final res = await http.get(Uri.parse(
-          'https://65bfa18a25a83926ab956096.mockapi.io/users?page=1&limit=15'));
+      final res = await http.get(Uri.parse('$API_KEY/users?page=1&limit=15'));
 
       var jsonResponse = res.body;
 
@@ -28,8 +25,11 @@ class UserDataProvider {
             'Content-Type': 'application/json',
           },
           body: encodedData);
-
-      return "Success";
+      if (res.statusCode == 200) {
+        return "Success";
+      } else {
+        throw res.body;
+      }
     } catch (e) {
       throw e.toString();
     }
@@ -41,7 +41,11 @@ class UserDataProvider {
           .delete(Uri.parse("$API_KEY/users/${id}"), headers: <String, String>{
         'Content-Type': 'application/json',
       });
-      return "Success";
+      if (res.statusCode == 200) {
+        return "Success";
+      } else {
+        throw res.body;
+      }
     } catch (e) {
       throw e.toString();
     }
@@ -69,7 +73,11 @@ class UserDataProvider {
           },
           body: encodedData);
 
-      return "Success";
+      if (res.statusCode == 201) {
+        return res.body;
+      } else {
+        throw res.body;
+      }
     } catch (e) {
       throw e.toString();
     }

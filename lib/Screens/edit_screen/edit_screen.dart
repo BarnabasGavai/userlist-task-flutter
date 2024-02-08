@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:mytask/Screens/home_screen.dart';
+import 'package:mytask/Screens/home_screen/home_screen.dart';
 import 'package:mytask/bloc/user_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../models/user.dart';
+import '../../models/user.dart';
 
 enum Gender { male, female }
 
@@ -23,6 +23,8 @@ class _EditingScreenState extends State<EditingScreen> {
   var email = TextEditingController();
   Gender? gender;
   final _formKey = GlobalKey<FormState>();
+  //to check whether builder is running for the first time
+  bool first_build = true;
 
   @override
   Widget build(BuildContext context) {
@@ -31,17 +33,23 @@ class _EditingScreenState extends State<EditingScreen> {
     if (args != null) {
       myUser = args as User;
     }
-    name.text = myUser?.name ?? "";
-    phone.text = myUser?.phone ?? "";
-    address.text = myUser?.address ?? "";
-    state.text = myUser?.state ?? "";
-    city.text = myUser?.city ?? "";
-    email.text = myUser?.email ?? "";
+    if (first_build) {
+      name.text = myUser?.name ?? "";
+      phone.text = myUser?.phone ?? "";
+      address.text = myUser?.address ?? "";
+      state.text = myUser?.state ?? "";
+      city.text = myUser?.city ?? "";
+      email.text = myUser?.email ?? "";
+      gender = (myUser?.gender == 'male') ? Gender.male : Gender.female;
+    }
+    first_build = false;
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.teal,
-        title: (myUser == null) ? Text("Add New User") : Text("Update User"),
+        title: (myUser == null)
+            ? const Text("Add New User")
+            : const Text("Update User"),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -73,7 +81,7 @@ class _EditingScreenState extends State<EditingScreen> {
                                       BorderRadius.all(Radius.circular(10))),
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty) {
+                              if (name.text == null || name.text.isEmpty) {
                                 return 'Please enter some text';
                               }
 
@@ -127,7 +135,7 @@ class _EditingScreenState extends State<EditingScreen> {
                             ],
                           ),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 20,
                         ),
                         Container(
@@ -142,11 +150,11 @@ class _EditingScreenState extends State<EditingScreen> {
                                       BorderRadius.all(Radius.circular(10))),
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty) {
+                              if (email.text == null || email.text.isEmpty) {
                                 return 'Please enter an Email Address';
                               } else if (!RegExp(
                                       r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-                                  .hasMatch(value)) {
+                                  .hasMatch(email.text)) {
                                 return "Enter a valid Email";
                               }
 
@@ -154,7 +162,7 @@ class _EditingScreenState extends State<EditingScreen> {
                             },
                           ),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 20,
                         ),
                         Container(
@@ -169,7 +177,7 @@ class _EditingScreenState extends State<EditingScreen> {
                                       BorderRadius.all(Radius.circular(10))),
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty) {
+                              if (phone.text == null || phone.text.isEmpty) {
                                 return 'Please enter some text';
                               }
 
@@ -177,7 +185,7 @@ class _EditingScreenState extends State<EditingScreen> {
                             },
                           ),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 20,
                         ),
                         Container(
@@ -192,7 +200,8 @@ class _EditingScreenState extends State<EditingScreen> {
                                       BorderRadius.all(Radius.circular(10))),
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty) {
+                              if (address.text == null ||
+                                  address.text.isEmpty) {
                                 return 'Please enter some text';
                               }
 
@@ -200,7 +209,7 @@ class _EditingScreenState extends State<EditingScreen> {
                             },
                           ),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 20,
                         ),
                         Container(
@@ -215,7 +224,7 @@ class _EditingScreenState extends State<EditingScreen> {
                                       BorderRadius.all(Radius.circular(10))),
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty) {
+                              if (state.text == null || state.text.isEmpty) {
                                 return 'Please enter some text';
                               }
 
@@ -223,7 +232,7 @@ class _EditingScreenState extends State<EditingScreen> {
                             },
                           ),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 20,
                         ),
                         Container(
@@ -238,7 +247,7 @@ class _EditingScreenState extends State<EditingScreen> {
                                       BorderRadius.all(Radius.circular(10))),
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty) {
+                              if (city.text == null || city.text.isEmpty) {
                                 return 'Please enter some text';
                               }
 
@@ -246,14 +255,16 @@ class _EditingScreenState extends State<EditingScreen> {
                             },
                           ),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 20,
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: ElevatedButton(
                             onPressed: () {
-                              if (_formKey.currentState!.validate()) {
+                              if (_formKey.currentState!.validate() &&
+                                  gender != null) {
+                                //condition to check whether it is update request or add request
                                 if (myUser != null) {
                                   context.read<UserBloc>().add(UpdateUser(
                                       id: myUser?.id ?? "",
@@ -273,12 +284,13 @@ class _EditingScreenState extends State<EditingScreen> {
                                   }
                                   if (context.read<UserBloc>().state
                                       is UserFailure) {
-                                    SnackBar(content: Text("Adding failed"));
+                                    const SnackBar(
+                                        content: Text("Adding failed"));
                                   }
 
                                   if (context.read<UserBloc>().state
                                       is UserLoading) {
-                                    CircularProgressIndicator.adaptive();
+                                    const CircularProgressIndicator.adaptive();
                                   }
                                 } else {
                                   context.read<UserBloc>().add(AddUser(
@@ -298,7 +310,8 @@ class _EditingScreenState extends State<EditingScreen> {
                                   }
                                   if (context.read<UserBloc>().state
                                       is UserFailure) {
-                                    SnackBar(content: Text("Adding failed"));
+                                    const SnackBar(
+                                        content: Text("Adding failed"));
                                   }
 
                                   if (context.read<UserBloc>().state
@@ -306,9 +319,18 @@ class _EditingScreenState extends State<EditingScreen> {
                                     showDialog(
                                         context: context,
                                         builder: (context) {
-                                          return Center(
-                                            child: CircularProgressIndicator
-                                                .adaptive(),
+                                          return const Center(
+                                            child: Column(
+                                              children: [
+                                                CircularProgressIndicator
+                                                    .adaptive(),
+                                                Text(
+                                                  "Saving the data",
+                                                  style: TextStyle(
+                                                      color: Colors.black),
+                                                )
+                                              ],
+                                            ),
                                           );
                                         });
                                   }
@@ -334,5 +356,17 @@ class _EditingScreenState extends State<EditingScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    name.dispose();
+    phone.dispose();
+    address.dispose();
+    state.dispose();
+    city.dispose();
+    email.dispose();
+    super.dispose();
   }
 }

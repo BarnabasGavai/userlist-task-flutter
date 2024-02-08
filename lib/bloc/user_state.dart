@@ -22,7 +22,10 @@ final class UserFailure extends UserState {
   UserFailure(this.error);
 }
 
-final class UserLoading extends UserState {}
+final class UserLoading extends UserState {
+  String loading_message = "";
+  UserLoading(this.loading_message);
+}
 
 final class LoadingMore extends UserState {
   final List<User> users;
