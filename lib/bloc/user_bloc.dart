@@ -17,17 +17,18 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     on<InitialLoad>(
       (event, emit) async {
         emit(UserLoading());
-        var chk = await userRepo.initialData();
-        if (chk == null) {
-          emit(UserFailure("Failed to Load Data!"));
-        } else {
-          users = chk;
+
+        try {
+          var response = await userRepo.initialData();
+          users = response;
           if (users.length < (page) * 15) {
             users.addAll(newlyAdded);
             emit(UserSuccess(users: users, hasData: false));
           } else {
             emit(UserSuccess(users: users, hasData: true));
           }
+        } catch (e) {
+          emit(UserFailure("Failed to Load Data! ${e.toString()}"));
         }
       },
     );
@@ -35,7 +36,6 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     on<UserFetched>((event, emit) async {
       emit(UserLoading());
       try {
-        users = await userRepo.getUsers();
         if (users.length < (page) * 15) {
           users.addAll(newlyAdded);
           emit(UserSuccess(users: users, hasData: false));
@@ -52,11 +52,15 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       } else {
         emit(LoadingMore(users: users));
         try {
-          users = await userRepo.moreUsers(page + 1);
+          List<User> tempusers = [];
+          tempusers = await userRepo.moreUsers(page + 1);
           page = page + 1;
+          users.addAll(tempusers);
+          tempusers = [];
 
           if (users.length < (page) * 15) {
             users.addAll(newlyAdded);
+            newlyAdded = [];
             emit(UserSuccess(users: users, hasData: false));
           } else {
             emit(UserSuccess(users: users, hasData: true));
@@ -66,6 +70,93 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         }
       }
     });
+    on<UpdateUser>(
+      (event, emit) async {
+        emit(UserLoading());
+        String latitude = "";
+        String longitude = "";
+        try {
+          LocationPermission permission = await Geolocator.requestPermission();
+          Position position = await determinePosition();
+          latitude = position.latitude.toString();
+          longitude = position.latitude.toString();
+        } catch (e) {
+          print("Location Error: ${e.toString()}");
+        }
+        User updatedUser = User(
+            id: event.id,
+            name: event.name,
+            email: event.email,
+            gender: event.gender,
+            phone: event.phone,
+            city: event.city,
+            state: event.state,
+            address: event.address,
+            latitude: longitude,
+            longitude: longitude,
+            status: "active");
+
+        try {
+          String response = await userRepo.updateCurrUser(updatedUser);
+          int chk = 0;
+          for (var user in users) {
+            if (user.id == updatedUser.id) {
+              int ind = users.indexOf(user);
+              users[ind] = updatedUser;
+              chk = 1;
+            }
+          }
+
+          if (chk == 0) {
+            for (var user in newlyAdded) {
+              if (user.id == updatedUser.id) {
+                int ind = newlyAdded.indexOf(user);
+                newlyAdded[ind] = updatedUser;
+                chk = 1;
+              }
+            }
+          }
+          if (users.length < (page) * 15) {
+            users.addAll(newlyAdded);
+            newlyAdded = [];
+            emit(UserSuccess(users: users, hasData: false));
+          } else {
+            emit(UserSuccess(users: users, hasData: true));
+          }
+        } catch (e) {
+          emit(UserFailure(e.toString()));
+        }
+      },
+    );
+
+    on<DeleteUser>(
+      (event, emit) async {
+        emit(UserLoading());
+        try {
+          String id = event.id;
+          String response = await userRepo.deleteCurrUser(id);
+          for (var element in users) {
+            if (element.id == id) {
+              users.remove(element);
+            }
+          }
+          for (var element in newlyAdded) {
+            if (element.id == id) {
+              newlyAdded.remove(element);
+            }
+          }
+          if (users.length < (page) * 15) {
+            users.addAll(newlyAdded);
+            newlyAdded = [];
+            emit(UserSuccess(users: users, hasData: false));
+          } else {
+            emit(UserSuccess(users: users, hasData: true));
+          }
+        } catch (e) {
+          emit(UserFailure(e.toString()));
+        }
+      },
+    );
 
     on<AddUser>(
       (event, emit) async {
@@ -78,7 +169,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
           latitude = position.latitude.toString();
           longitude = position.latitude.toString();
         } catch (e) {
-          print("ERRORR ${e.toString()}");
+          print("Location Error: ${e.toString()}");
         }
 
         try {
@@ -98,6 +189,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
           if (users.length < (page) * 15) {
             users.addAll(newlyAdded);
+            newlyAdded = [];
             emit(UserSuccess(users: users, hasData: false));
           } else {
             emit(UserSuccess(users: users, hasData: true));

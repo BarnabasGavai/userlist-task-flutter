@@ -1,47 +1,63 @@
 import 'package:flutter/material.dart';
-import 'package:mytask/Screens/HomeScreen.dart';
+import 'package:mytask/Screens/home_screen.dart';
 import 'package:mytask/bloc/user_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../models/user.dart';
+
 enum Gender { male, female }
 
-class EditScreen extends StatefulWidget {
-  EditScreen({super.key});
+class EditingScreen extends StatefulWidget {
+  static String routeName = "/edit";
 
   @override
-  State<EditScreen> createState() => _EditScreenState();
+  State<EditingScreen> createState() => _EditingScreenState();
 }
 
-class _EditScreenState extends State<EditScreen> {
+class _EditingScreenState extends State<EditingScreen> {
   var name = TextEditingController();
   var phone = TextEditingController();
   var address = TextEditingController();
   var state = TextEditingController();
   var city = TextEditingController();
   var email = TextEditingController();
-
   Gender? gender;
   final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
+    final args = ModalRoute.of(context)?.settings?.arguments;
+    User? myUser;
+    if (args != null) {
+      myUser = args as User;
+    }
+    name.text = myUser?.name ?? "";
+    phone.text = myUser?.phone ?? "";
+    address.text = myUser?.address ?? "";
+    state.text = myUser?.state ?? "";
+    city.text = myUser?.city ?? "";
+    email.text = myUser?.email ?? "";
+
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.teal,
+        title: (myUser == null) ? Text("Add New User") : Text("Update User"),
+        centerTitle: true,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(8, 15, 8, 15),
-            child: Column(children: [
-              const SizedBox(
-                height: 20,
-              ),
-              const Center(
-                  child: Text(
-                "Add New User",
-                style: TextStyle(fontSize: 20),
-              )),
-              const SizedBox(height: 20),
-              Container(
-                child: Form(
+          child: Theme(
+            data: ThemeData(
+              primarySwatch: Colors.teal,
+            ),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(8, 15, 8, 15),
+              child: Column(children: [
+                const SizedBox(
+                  height: 20,
+                ),
+                const SizedBox(height: 20),
+                Form(
                     key: _formKey,
                     child: Column(
                       children: [
@@ -50,6 +66,7 @@ class _EditScreenState extends State<EditScreen> {
                           child: TextFormField(
                             controller: name,
                             decoration: const InputDecoration(
+                              prefixIcon: Icon(Icons.person),
                               hintText: 'Full Name',
                               border: OutlineInputBorder(
                                   borderRadius:
@@ -118,6 +135,7 @@ class _EditScreenState extends State<EditScreen> {
                           child: TextFormField(
                             controller: email,
                             decoration: const InputDecoration(
+                              prefixIcon: Icon(Icons.email),
                               hintText: 'Email Adress',
                               border: OutlineInputBorder(
                                   borderRadius:
@@ -125,7 +143,11 @@ class _EditScreenState extends State<EditScreen> {
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter some text';
+                                return 'Please enter an Email Address';
+                              } else if (!RegExp(
+                                      r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                                  .hasMatch(value)) {
+                                return "Enter a valid Email";
                               }
 
                               return null;
@@ -140,6 +162,7 @@ class _EditScreenState extends State<EditScreen> {
                           child: TextFormField(
                             controller: phone,
                             decoration: const InputDecoration(
+                              prefixIcon: Icon(Icons.phone),
                               hintText: 'Phone No.',
                               border: OutlineInputBorder(
                                   borderRadius:
@@ -162,6 +185,7 @@ class _EditScreenState extends State<EditScreen> {
                           child: TextFormField(
                             controller: address,
                             decoration: const InputDecoration(
+                              prefixIcon: Icon(Icons.home),
                               hintText: 'Adress',
                               border: OutlineInputBorder(
                                   borderRadius:
@@ -184,6 +208,7 @@ class _EditScreenState extends State<EditScreen> {
                           child: TextFormField(
                             controller: state,
                             decoration: const InputDecoration(
+                              prefixIcon: Icon(Icons.map),
                               hintText: 'State',
                               border: OutlineInputBorder(
                                   borderRadius:
@@ -206,6 +231,7 @@ class _EditScreenState extends State<EditScreen> {
                           child: TextFormField(
                             controller: city,
                             decoration: const InputDecoration(
+                              prefixIcon: Icon(Icons.location_city),
                               hintText: 'City',
                               border: OutlineInputBorder(
                                   borderRadius:
@@ -228,33 +254,64 @@ class _EditScreenState extends State<EditScreen> {
                           child: ElevatedButton(
                             onPressed: () {
                               if (_formKey.currentState!.validate()) {
-                                context.read<UserBloc>().add(AddUser(
-                                    name: name.text.trim(),
-                                    address: address.text.trim(),
-                                    city: city.text.trim(),
-                                    email: email.text.trim(),
-                                    gender: gender == Gender.male
-                                        ? "male"
-                                        : "female",
-                                    phone: phone.text.trim(),
-                                    state: state.text.trim()));
+                                if (myUser != null) {
+                                  context.read<UserBloc>().add(UpdateUser(
+                                      id: myUser?.id ?? "",
+                                      name: name.text.trim(),
+                                      address: address.text.trim(),
+                                      city: city.text.trim(),
+                                      email: email.text.trim(),
+                                      gender: gender == Gender.male
+                                          ? "male"
+                                          : "female",
+                                      phone: phone.text.trim(),
+                                      state: state.text.trim()));
 
-                                if (context.read<UserBloc>().state
-                                    is UserSuccess) {
-                                  Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => HomeScreen(),
-                                      ));
-                                }
-                                if (context.read<UserBloc>().state
-                                    is UserFailure) {
-                                  SnackBar(content: Text("Adding failed"));
-                                }
+                                  if (context.read<UserBloc>().state
+                                      is UserSuccess) {
+                                    Navigator.pop(context);
+                                  }
+                                  if (context.read<UserBloc>().state
+                                      is UserFailure) {
+                                    SnackBar(content: Text("Adding failed"));
+                                  }
 
-                                if (context.read<UserBloc>().state
-                                    is UserLoading) {
-                                  CircularProgressIndicator.adaptive();
+                                  if (context.read<UserBloc>().state
+                                      is UserLoading) {
+                                    CircularProgressIndicator.adaptive();
+                                  }
+                                } else {
+                                  context.read<UserBloc>().add(AddUser(
+                                      name: name.text.trim(),
+                                      address: address.text.trim(),
+                                      city: city.text.trim(),
+                                      email: email.text.trim(),
+                                      gender: gender == Gender.male
+                                          ? "male"
+                                          : "female",
+                                      phone: phone.text.trim(),
+                                      state: state.text.trim()));
+
+                                  if (context.read<UserBloc>().state
+                                      is UserSuccess) {
+                                    Navigator.pop(context);
+                                  }
+                                  if (context.read<UserBloc>().state
+                                      is UserFailure) {
+                                    SnackBar(content: Text("Adding failed"));
+                                  }
+
+                                  if (context.read<UserBloc>().state
+                                      is UserLoading) {
+                                    showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return Center(
+                                            child: CircularProgressIndicator
+                                                .adaptive(),
+                                          );
+                                        });
+                                  }
                                 }
                               }
                             },
@@ -270,9 +327,9 @@ class _EditScreenState extends State<EditScreen> {
                           ),
                         ),
                       ],
-                    )),
-              )
-            ]),
+                    ))
+              ]),
+            ),
           ),
         ),
       ),

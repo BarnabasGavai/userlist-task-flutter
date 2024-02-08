@@ -8,7 +8,7 @@ class User {
   String name;
   String email;
   String gender;
-  String status;
+  String? status;
   String? phone;
   String? state;
   String? city;
@@ -21,7 +21,7 @@ class User {
       required this.name,
       required this.email,
       required this.gender,
-      required this.status,
+      this.status,
       this.address,
       this.city,
       this.latitude,
@@ -41,22 +41,28 @@ class User {
       'city': city,
       'address': address,
       'latitude': latitude,
-      'longitude': longitude
+      'longitude': longitude,
     };
-  }
-
-  factory User.fromMap(Map<String, dynamic> map) {
-    return User(
-      id: map['id'] as String,
-      name: map['name'] as String,
-      email: map['email'] as String,
-      gender: map['gender'] as String,
-      status: map['status'] as String,
-    );
   }
 
   String toJson() => json.encode(toMap());
 
   factory User.fromJson(String source) =>
       User.fromMap(json.decode(source) as Map<String, dynamic>);
+
+  factory User.fromMap(Map<String, dynamic> map) {
+    return User(
+      id: map['id'] != null ? map['id'] as String : null,
+      name: map['name'] as String,
+      email: map['email'] as String,
+      gender: map['gender'] as String,
+      status: map['status'] as String,
+      phone: map['phone'] != null ? map['phone'] as String : null,
+      state: map['state'] != null ? map['state'] as String : null,
+      city: map['city'] != null ? map['city'] as String : null,
+      address: map['address'] != null ? map['address'] as String : null,
+      latitude: map['latitude'] != null ? map['latitude'] as String : null,
+      longitude: map['longitude'] != null ? map['longitude'] as String : null,
+    );
+  }
 }
