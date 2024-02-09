@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:mytask/Screens/home_screen/home_screen.dart';
+import 'package:mytask/Screens/home_screen.dart';
 import 'package:mytask/bloc/user_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../models/user.dart';
+import '../models/user.dart';
 
 enum Gender { male, female }
 
@@ -267,7 +267,7 @@ class _EditingScreenState extends State<EditingScreen> {
                                 //condition to check whether it is update request or add request
                                 if (myUser != null) {
                                   context.read<UserBloc>().add(UpdateUser(
-                                      id: myUser?.id ?? "",
+                                      id: myUser?.id ?? -1,
                                       name: name.text.trim(),
                                       address: address.text.trim(),
                                       city: city.text.trim(),

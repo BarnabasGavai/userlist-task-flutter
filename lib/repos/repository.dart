@@ -32,7 +32,7 @@ class UserRepo {
     }
   }
 
-  Future<String> deleteCurrUser(String id) async {
+  Future<String> deleteCurrUser(int id) async {
     try {
       final res = await userDataProvider.deleteDataUser(id);
       return res;
@@ -57,7 +57,7 @@ class UserRepo {
     }
   }
 
-  Future<String> newUser(User newuser) async {
+  Future<int> newUser(User newuser) async {
     try {
       Map data = newuser.toMap();
       String response = await userDataProvider.createUser(data);

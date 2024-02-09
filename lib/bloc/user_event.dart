@@ -14,7 +14,7 @@ final class UserFetched extends UserEvent {}
 final class FetchMore extends UserEvent {}
 
 final class DeleteUser extends UserEvent {
-  String id;
+  int id;
   DeleteUser({required this.id});
 }
 
@@ -38,7 +38,7 @@ final class AddUser extends UserEvent {
 }
 
 final class UpdateUser extends UserEvent {
-  String id;
+  int id;
   String name;
   String gender;
   String phone;

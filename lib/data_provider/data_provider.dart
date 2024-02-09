@@ -18,7 +18,7 @@ class UserDataProvider {
 
   Future<String> updateUserData(Map user) async {
     try {
-      String id = user['id'];
+      int id = user['id'];
       String encodedData = jsonEncode(user);
       final res = await http.patch(Uri.parse("$API_KEY/users/${id}"),
           headers: <String, String>{
@@ -35,7 +35,7 @@ class UserDataProvider {
     }
   }
 
-  Future<String> deleteDataUser(String id) async {
+  Future<String> deleteDataUser(int id) async {
     try {
       final res = await http
           .delete(Uri.parse("$API_KEY/users/${id}"), headers: <String, String>{

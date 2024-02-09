@@ -4,7 +4,7 @@ import 'dart:convert';
 // {"id":6129712,"name":"Chakravartee Chaturvedi","email":"chakravartee_chaturvedi@keeling.test","gender":"male","status":"inactive"}
 
 class User {
-  String? id;
+  int? id;
   String name;
   String email;
   String gender;
@@ -52,7 +52,7 @@ class User {
 
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
-      id: map['id'] != null ? map['id'] as String : null,
+      id: map['id'] != null ? map['id'] : null,
       name: map['name'] as String,
       email: map['email'] as String,
       gender: map['gender'] as String,

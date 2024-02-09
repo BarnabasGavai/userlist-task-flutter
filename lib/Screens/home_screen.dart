@@ -4,8 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:mytask/bloc/user_bloc.dart';
 
-import '../../models/user.dart';
-import '../edit_screen/edit_screen.dart';
+import '../models/user.dart';
+import 'edit_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   static String routeName = "/";
@@ -21,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /* All Functions: */
   /* Delete helper function to call a bloc event which deletes the speicific user */
-  void delete_helper(String id) {
+  void delete_helper(int id) {
     context.read<UserBloc>().add(DeleteUser(id: id));
   }
 
@@ -77,7 +77,18 @@ class _HomeScreenState extends State<HomeScreen> {
             //Failed condition checking
             if (state is UserFailure) {
               return Center(
-                  child: Text("Following Error Occured: ${state.error}"));
+                  child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text("Following Error Occured: ${state.error}"),
+                  ElevatedButton(
+                      onPressed: () {
+                        context.read<UserBloc>().add(UserFetched());
+                      },
+                      child: Text("Revert to home screen"))
+                ],
+              ));
             }
             /* To show the circular progress indicator, the state should be loading state. LoadingMore is a state which is emitted when more data is fetched on scrolling(Pagination). So while the app is in LoadingMore state, still it must be responsive and running. */
             if (state is! UserSuccess && state is! LoadingMore) {
@@ -86,21 +97,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator.adaptive(
+                    const CircularProgressIndicator.adaptive(
                       backgroundColor: Colors.white,
                       valueColor: AlwaysStoppedAnimation(Colors.black),
                     ),
-                    SizedBox(
+                    const SizedBox(
                       height: 5,
                     ),
                     (state is UserLoading)
                         ? Text(
                             state.loading_message,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 17,
                             ),
                           )
-                        : Text("")
+                        : const Text("")
                   ],
                 ),
               );
@@ -286,28 +297,28 @@ class _HomeScreenState extends State<HomeScreen> {
                   } else {
                     if (state is! UserSuccess) {
                       return Padding(
-                        padding: EdgeInsets.symmetric(vertical: 32),
+                        padding: const EdgeInsets.symmetric(vertical: 32),
                         child: Center(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              CircularProgressIndicator.adaptive(
+                              const CircularProgressIndicator.adaptive(
                                 backgroundColor: Colors.white,
                                 valueColor:
                                     AlwaysStoppedAnimation(Colors.black),
                               ),
-                              SizedBox(
+                              const SizedBox(
                                 height: 5,
                               ),
                               (state is UserLoading)
                                   ? Text(
                                       state.loading_message,
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontSize: 17,
                                       ),
                                     )
-                                  : Text("")
+                                  : const Text("")
                             ],
                           ),
                         ),

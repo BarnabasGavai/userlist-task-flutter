@@ -1,1 +1,1 @@
-String API_KEY = "https://65bfa18a25a83926ab956096.mockapi.io";
+String API_KEY = "https://gorest.co.in/public/v2";
