@@ -9,8 +9,10 @@ Bloc state management was used for this project.
 - [**Geolocator**](https://pub.dev/packages/geolocator)
 
 ## Sample pics
-![User List](https://i.ibb.co/NYndXrG/Screenshot-20240209-162542.jpg)
-![Edit User](https://i.ibb.co/3WvkRvZ/Screenshot-20240209-162536.jpg)
+<img src="https://github.com/BarnabasGavai/userlist-task-flutter/assets/74435697/70286a14-40dc-4b40-bc63-617fb3b303cc" height="700">
+<img src="https://github.com/BarnabasGavai/userlist-task-flutter/assets/74435697/3e82d94d-948c-45f6-8bf7-8330274e0512" height="700">
+
+
 
 ## Architecture
 - Bloc: This part was divided into further 3 sections. First was bloc management where all the control and logic part was written to catch and emit states and events and the other two were bloc state and bloc events respectively
